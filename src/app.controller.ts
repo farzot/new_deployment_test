@@ -10,23 +10,28 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get("bye")
+  @Get('bye')
   getBye(): string {
-    return "bye Najim";
+    return 'bye Najim';
   }
 
-  @Get("Contact")
+  @Get('Contact')
   getContact(): string {
-    return "Contact Najim: 0123456789";
+    return 'Contact Najim: 0123456789';
   }
 
-  @Get("ci_cd")
+  @Get('ci_cd')
   ciCd(): string {
-    return "CI/CD has been implemented successfully!";
+    return 'CI/CD has been implemented successfully!';
   }
 
-  @Get("/all")
+  @Get('/all')
   getAll(): string {
-    return "Get all api is working!";
+    return 'Get all api is working!';
+  }
+
+  @Get('/najim')
+  najim(): string {
+    return 'Qalesan Najim';
   }
 }
