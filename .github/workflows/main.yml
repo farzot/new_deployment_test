@@ -1,0 +1,52 @@
+name: CI and Deploy to Server
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js (local runner)
+      uses: actions/setup-node@v3
+      with:
+        node-version: 'v20.12.2'
+
+    - name: Install dependencies (local runner)
+      run: npm ci
+
+    - name: Build project (local runner)
+      run: npm run build
+
+    - name: Deploy to development server
+      if: github.ref == 'refs/heads/master'
+      uses: appleboy/ssh-action@v0.1.2
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: root
+        password: ${{ secrets.SERVER_PASSWORD }}
+        script: |
+          # Loyihaning joylashuvini yaratish va loyihani olish
+          mkdir -p /projects/${{ secrets.REPO_NAME }}
+          cd /projects/${{ secrets.REPO_NAME }}
+          if [ ! -d ".git" ]; then
+              git clone https://github.com/farzot/${{ secrets.REPO_NAME }}.git .
+          fi
+          git pull https://farzot:${{ secrets.TOKEN_GITHUB }}@github.com/farzot/${{ secrets.REPO_NAME }}.git master
+
+           # .env faylini yuklash
+          echo "${{ secrets.ENV_CONTENT }}" > .env
+
+          # Kerakli kutubxonalarni o'rnatish va loyihani build qilish
+          npm ci
+          npm run build
+          
+          # PM2 orqali jarayonlarni boshqarish
+          pm2 restart ${{ secrets.REPO_NAME }} || pm2 start npm --name="${{ secrets.REPO_NAME }}" -- run start
+          pm2 save
